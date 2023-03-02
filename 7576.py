@@ -1,55 +1,57 @@
+import sys
+input = sys.stdin.readline
+
 from collections import deque
 
 dy = [-1,1,0,0]
 dx = [0,0,-1,1]
 
-def bfs(tomatoList,graph,visited,M,N):
-  countStack = []
+def getTomatoIndex(tomato, N, M):
   queue = deque()
-  
-  for tomato in tomatoList:
-    queue.append((tomato[0],tomato[1],0))
-    visited[tomato[0]][tomato[1]] = True
+  for i in range(M):
+    for j in range(N):
+      if tomato[i][j] == 1:
+        queue.append((i,j))
+  return queue
 
-  while queue:
-    yIndex, xIndex, count = queue.popleft()
+def bfs(tomato, visited, tomatoList, N, M):
+  while tomatoList:
+    yIndex, xIndex = tomatoList.popleft()
+    visited[yIndex][xIndex] = True
     for i in range(4):
-      ny = yIndex + dy[i]
       nx = xIndex + dx[i]
-      if 0<=ny<N and 0<=nx<M and graph[ny][nx] == 0 and visited[ny][nx] == False:
-        visited[ny][nx] = True
-        graph[ny][nx] = 1
-        countStack.append(count+1)
-        queue.append((ny,nx,count+1))
-  countStack.sort()
-  if countStack:
-    return countStack[-1]
-  else:
-    return 0
+      ny = yIndex + dy[i]
 
-answer = []
-tomatoList = []
-M, N = map(int, input().split())
-graph = []
-visited = [[False for i in range(M)] for j in range(N)]
+      if 0 <= nx < N and 0 <= ny < M and visited[ny][nx] == False and tomato[ny][nx] == 0:
+        tomato[ny][nx] = tomato[yIndex][xIndex] + 1
+        tomatoList.append((ny,nx))
 
-for _ in range(N):
-  graph.append(list(map(int, input().split())))
+def isPossible(tomato):
+  for tempTomato in tomato:
+    if 0 in tempTomato:
+      return False
+  return True
 
-for y in range(N):
-  for x in range(M):
-    if graph[y][x] == 1 and visited[y][x] == False:
-      tomatoList.append((y,x))
-answer.append(bfs(tomatoList,graph,visited,M,N))
+def getMaximumDay(tomato):
+  answer = -1
+  for tempTomato in tomato:
+    maximumDay = max(tempTomato)
+    if answer < maximumDay:
+      answer = maximumDay
+  return answer
 
-isPossible = True
-for y in range(N):
-  for x in range(M):
-    if graph[y][x] == 0:
-      print(-1)
-      isPossible = False
-      break
-  if isPossible == False:
-    break
-if isPossible:
-  print(answer[0])
+
+N,M = map(int, input().split())
+tomato = []
+for _ in range(M):
+  tomato.append(list(map(int, input().split())))
+
+tomatoList = getTomatoIndex(tomato, N, M)
+visited = [[False for _ in range(N)] for _ in range(M)]
+
+bfs(tomato, visited, tomatoList, N, M)
+
+if isPossible(tomato):
+  print(getMaximumDay(tomato)-1)
+else:
+  print(-1)
